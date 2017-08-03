@@ -22,24 +22,24 @@ from ftplib import FTP
 from serial.tools import list_ports
 
 def main():
-    platform_detection() 
+    platform_detection()
     device_selection_prompt()
     if device != 4:
         configure_usbserial()
         check_network()
     elif device == 4:
         configure_socket()
-    define_firmware()
+    # define_firmware()
     if device != 4:
         generate_update_packets()
-        write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
-        write_packet(packet_2) # Enable Reporting
-        upload_binary()
-        write_packet(packet_3) # Send File size
-        write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
+        write_packet(packet_1) # Enter upgrade mode (delete old file if exists)
+        # write_packet(packet_2) # Enable Reporting
+        # upload_binary()
+        # write_packet(packet_3) # Send File size
+        # write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
     elif device == 4:
         doSparkRc()
-    print ("--------------------------------------------------------------------------") 
+    print ("--------------------------------------------------------------------------")
     print ("If you are upgrading/downgrading firmware, this may take a while.\nIf you are rooting, the process is almost instant. wait a few seconds and reboot your device.")
     if device != 4:
         ser.close
@@ -71,11 +71,11 @@ def device_selection_prompt():
 	    print ("5: plug in usb and turn on")
 
 	elif device == 3:
-	    print ("Exploit for Goggles selected")	
+	    print ("Exploit for Goggles selected")
 
 	elif device == 4:
 		print("Spark RC selected")
-	print ("--------------------------------------------------------------------------")    
+	print ("--------------------------------------------------------------------------")
 	return
 
 def find_port():
@@ -195,21 +195,21 @@ def upload_binary():
     else :
         print("Creating /upgrade/.bin directory...\n")
         ftp.mkd("/upgrade/.bin")
-	
+
     fh.close()
-    ftp.quit()        
+    ftp.quit()
     return
 
 def generate_update_packets():
-    
-    global packet_1 
-    global packet_2 
-    global packet_3 
+
+    global packet_1
+    global packet_2
+    global packet_3
     global packet_4
 
     # Pack file size into 4 byte Long little endian
-    dir_path = str(firmware_file)
-    file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
+    # dir_path = str(firmware_file)
+    # file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
     if device == 1: #Aircraft
         # Enter upgrade mode (delete old file if exists)
@@ -221,31 +221,31 @@ def generate_update_packets():
         #YYYYYYYY - file size in little endian
         #XXXX - CRC as produced by table_crc.py
 
-        packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 28 6B 57 40 00 08 00')
-        packet_3 += file_size #append file size
-        packet_3 += bytearray.fromhex(u'00 00 00 00 00 00 02 04')
+        # packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 28 6B 57 40 00 08 00')
+        # packet_3 += file_size #append file size
+        # packet_3 += bytearray.fromhex(u'00 00 00 00 00 00 02 04')
+        #
+        # packet_length = len(packet_3)
+        # crc = calc_checksum(packet_3,packet_length)
+        # crc = struct.pack('<H',crc)
+        # packet_3 += crc
+        #
+        # # Calculate File md5 hash
+        # filehash = hashlib.md5()
+        # filehash.update(open(dir_path).read())
+        # filehash = filehash.hexdigest()
+        # hex_data = filehash.decode("hex")
+        # md5_check = bytearray(hex_data)
+        #
+        # # File Verification and Start Upgrade
+        # packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 28 F6 57 40 00 0A 00')
+        # packet_4 += md5_check
+        #
+        # packet_length = len(packet_4)
+        # crc = calc_checksum(packet_4,packet_length)
+        # crc = struct.pack('<H',crc)
+        # packet_4 += crc
 
-        packet_length = len(packet_3)
-        crc = calc_checksum(packet_3,packet_length)
-        crc = struct.pack('<H',crc)
-        packet_3 += crc
-
-        # Calculate File md5 hash
-        filehash = hashlib.md5()
-        filehash.update(open(dir_path).read())
-        filehash = filehash.hexdigest()
-        hex_data = filehash.decode("hex")
-        md5_check = bytearray(hex_data)
-
-        # File Verification and Start Upgrade
-        packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 28 F6 57 40 00 0A 00')
-        packet_4 += md5_check
-
-        packet_length = len(packet_4)
-        crc = calc_checksum(packet_4,packet_length)
-        crc = struct.pack('<H',crc)
-        packet_4 += crc
-    
     elif device == 2: #RC
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 2D E7 27 40 00 07 00 00 00 00 00 00 00 00 00 9F 44')
@@ -307,7 +307,7 @@ def generate_update_packets():
         crc = calc_checksum(packet_4,packet_length)
         crc = struct.pack('<H',crc)
         packet_4 += crc
-		
+
     else:
         sys.exit("Invalid Selection. Exiting.\n")
 
@@ -317,7 +317,7 @@ def doSparkRc():
     f = open (str(firmware_file), "rb")
     data = f.read()
     f.close()
-    
+
     send_duml_tcp(s, 0x02, 0x1b, 0x40, 0x00, 0x07, bytearray.fromhex(u'00 00 00 00 00 00 00 00 00'))
 
     packet_08 = bytearray.fromhex(u'00')
@@ -370,7 +370,7 @@ def calc_pkt55_hdr_checksum(seed, packet, plength):
     chksum = seed
     for i in range(0, plength):
         chksum = arr_2A103[((packet[i] ^ chksum) & 0xFF)];
-    return chksum	
-	
+    return chksum
+
 if __name__ == "__main__":
     main()
